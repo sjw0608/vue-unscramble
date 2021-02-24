@@ -9,6 +9,8 @@ class Watcher {
         this.cb = cb
         this.options = options
         this.user = options.user // 这是一个用户watcher
+        this.lazy = !!options.lazy // 如果属性上有lazy属性说明是计算属性
+        this.dirty = this.lazy  // dirty 表示取值时是否执行用户提供的方法
         this.id = id++ // watcher 的唯一表示
         this.dep = [] // 记录有多少dep依赖
         this.depsId = new Set() // 借助set数据结构去重
@@ -26,11 +28,11 @@ class Watcher {
             }
         }
         // 默认会调用一次get方法，进行取值，将结果保存起来
-        this.value = this.get()
+        this.value = this.lazy ? void 0 : this.get()
     }
     get() {
         pushTarget(this) // 当前watcher的实例
-        let result = this.getter() // 调用exprOrFn方法 渲染页面 取值 执行了get方法
+        let result = this.getter.call(this.vm) // 调用exprOrFn方法 渲染页面 取值 执行了get方法
         popTarget() // 渲染完将watcher删除
         return result
     }
@@ -38,14 +40,19 @@ class Watcher {
         let newValue = this.get() // 渲染
         let oldValue = this.value
         this.value = newValue // 更新一下老值
-        if(this.user){
-            this.cb.call(this.vm,newValue,oldValue)
+        if (this.user) {
+            this.cb.call(this.vm, newValue, oldValue)
         }
     }
     update() {
-        // 这里不要每次都调用get方法，因为get方法会重新渲染页面
-        queueWatcher(this) // 暂存概念
-        // this.get() // 重新渲染
+        if (this.lazy) { // 是计算属性
+            this.dirty = true // 页面重新渲染就可以重新获取到值了
+        } else {
+            // 这里不要每次都调用get方法，因为get方法会重新渲染页面
+            queueWatcher(this) // 暂存概念
+            // this.get() // 重新渲染
+        }
+
     }
     addDep(dep) {
         let id = dep.id
@@ -56,6 +63,18 @@ class Watcher {
             dep.addSub(this)
         }
     }
+    evaluate() {
+        this.value = this.get()
+        this.dirty = false // 取过一次值之后就标识已经取过值了
+    }
+    depend(){
+        // 计算属性watcher 会存储 dep dep会存储watcher
+        // 通过watcher找到对应的所有dep 让所有的dep都记住这个 watcher
+        let i = this.dep.length
+        while (i--) {
+            this.dep[i].depend() // 让dep去存储watcher
+        } 
+    }
 }
 
 let queue = [] // 将需要批量更新的watcher 存放到一个队列中，稍后让watcher执行
@@ -63,11 +82,11 @@ let has = {}
 let pending = false
 
 function flushSchedulerQueue() {
-    queue.forEach(watcher => { 
-        watcher.run(); 
-        if(!watcher.user){
+    queue.forEach(watcher => {
+        watcher.run();
+        if (!watcher.user) {
             watcher.cb()
-        } 
+        }
     })
     queue = [] // 清空watcher队列 为了下次使用
     has = {} // 晴空标识队列
