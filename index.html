@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app" style="color:red">Hello Vue <span style="color:blue">{{a}}</span></div>
+    <script src="dist/umd/vue.js"></script>
+    <script>
+        let vm = new Vue({
+            el: '#app',
+            data() {
+                return { a: { a: 1 } }
+            },
+            created() {
+            },
+            watch: {
+                'a.a': {
+                    handler(newVal, oldVal) {
+                        console.log(newVal, oldVal);
+                    },
+                    // immediate:true
+                }
+            }
+
+        })
+        //Vue.mixin() 混入
+        vm.a.a = 2
+
+        // watcher和dep的互记 watcher去重 异步更新
+
+        // 1.我取arr的值 会调用get方法， 我希望让当前数组记住这个渲染watcher
+        // 2.我给所有的对象类型都增加一个Dep属性
+        // 3.当页面对arr取值时 我就让数组的dep记住这个watcher
+        // 4.等会我更新数组时 push shift等方法，找到数组对应的watcher来更新
+    </script>
+</body>
+
+</html>
