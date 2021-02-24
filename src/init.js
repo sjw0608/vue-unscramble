@@ -1,5 +1,5 @@
 import { compileToFunctions } from "./compiler/index";
-import { mergeOptions } from "./global-api/index";
+import { mergeOptions } from "./util/index";
 import { callHook, mountComponent } from "./lifecycle";
 import { initState } from "./state";
 

@@ -1,4 +1,4 @@
-import { nextTick } from "../util"
+import { nextTick } from "../util/index"
 import { popTarget, pushTarget } from "./dep"
 
 let id = 0

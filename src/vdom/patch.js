@@ -47,8 +47,6 @@ export function patch(oldVnode, vnode) {
                 el.appendChild(createElm(child))
             }
         }
-
-
     }
 }
 // 儿子间的比较
