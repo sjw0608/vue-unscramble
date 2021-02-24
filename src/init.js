@@ -7,6 +7,7 @@ export function initMixin(Vue) {
 
     Vue.prototype._init = function (options) {
         const vm = this
+        // Vue.options 和用户定义的
         vm.$options = mergeOptions(vm.constructor.options,options) // 需要将用户自定义的options 和全局的options合并
         callHook(vm,'beforeCreate')
         initState(vm) // 初始化状态

@@ -1,4 +1,7 @@
 export function patch(oldVnode, vnode) {
+    if(!oldVnode){ // 如果是组件这个oldVnode 是个 undefined
+       return createElm(vnode) // 这个vnode是组件中的内容
+    }
     // 默认初始化时，是直接用虚拟节点创建出真是节点 替换掉老节点
     if (oldVnode.nodeType == 1) { // 真是DOM
         // 将虚拟节点转化成真实节点
@@ -136,10 +139,24 @@ function updateChildren(oldChildren, newChildren, parent) {
 function isSameVnode(oldVnode, newVnode) {
     return (oldVnode.key == newVnode.key) && (oldVnode.tag == newVnode.tag)
 }
+function createComponent(vnode){
+    // 调用Hook中的init方法
+    let i = vnode.data
+    if((i = i.hook) && (i = i.init)){ // i 就是init方法
+        i(vnode) // 内部会new组件 会将实例挂载到vnode上
+    }
+    if(vnode.componentInstance){
+        return true
+    }
+}
 
 function createElm(vnode) {
     let { tag, data, key, children, text } = vnode
     if (typeof tag == 'string') {
+
+        if(createComponent(vnode)){ // 组件渲染后的结果 放到当前组件的实例上 vm.$el
+            return vnode.componentInstance.$el // 组件对应的dom元素
+        }
         vnode.el = document.createElement(tag) // 创建元素放到vnode.el上
 
         // 只有元素才有属性

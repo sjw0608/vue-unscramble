@@ -17,9 +17,21 @@ export const LIFECYCLE_HOOKS = [
 
 // 策略模式
 const strats = {}
-strats.data = function (parentVal, childVal) {
-    return childVal
-}
+strats.components = function (parentVal, childVal){
+    // 通过原型链来进行合并
+    const res  = Object.create(parentVal)
+    if(childVal){
+        for(let key in childVal){
+            res[key] = childVal[key]
+        }
+    }
+
+    return res
+} 
+
+// strats.data = function (parentVal, childVal) {
+//     return childVal
+// }
 // strats.computed = function () { }
 // strats.watch = function () { }
 // 生命周期的合并
@@ -58,7 +70,12 @@ export function mergeOptions(parent, child) {
         if (strats[key]) {
             options[key] = strats[key](parent[key], child[key])
         } else {
-            options[key] = child[key]
+            if(child[key]){
+                options[key] = child[key]
+            }else{
+                options[key] = parent[key]
+            }
+            
         }
     }
     return options
